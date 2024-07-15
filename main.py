@@ -24,11 +24,13 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Flappy Bird")
 
 # Параметры птицы
-bird_images = [pygame.image.load('bird1.png'), pygame.image.load('bird2.png')]
+bird_images = [pygame.image.load('bird3.png'), pygame.image.load('bird4.png'), pygame.image.load('bird3.png')]
 bird_images = [pygame.transform.scale(img, (60, 40)) for img in bird_images]  # Уменьшение изображений
 bird_index = 0  # Индекс текущего изображения птицы
 bird_rect = bird_images[bird_index].get_rect(center=(WIDTH // 4, HEIGHT // 2))
 velocity = 0
+bird_died_image = pygame.image.load('bird5.png')
+bird_died_image = pygame.transform.scale(bird_died_image, (60, 40))
 
 # Параметры труб
 pipe_width = 50
@@ -136,6 +138,7 @@ pipe_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(pipe_timer, pipe_frequency)
 score = 0
 sound_on = True
+pause_start_time = 0
 
 show_start_screen()  # Показываем стартовый экран перед началом игры
 
@@ -195,7 +198,14 @@ while running:
 
         # Отрисовка
         screen.blit(background_image, (0, 0))
-        screen.blit(bird_images[bird_index], bird_rect)
+        if game_over:
+            screen.blit(bird_died_image, bird_rect)  # Отображаем птицу после смерти
+            if pause_start_time == 0:
+                pause_start_time = pygame.time.get_ticks()  # Запоминаем время начала паузы
+            elif pygame.time.get_ticks() - pause_start_time >= 5000:  # Пауза 5 секунд
+                game_over = True
+        else:
+            screen.blit(bird_images[bird_index], bird_rect)  # Отображаем обычную птицу
         for pipe_top, pipe_bottom in pipes:
             pygame.draw.rect(screen, GREEN, pipe_top)
             pygame.draw.rect(screen, GREEN, pipe_bottom)
@@ -204,7 +214,7 @@ while running:
         score_text = font.render(f"Score: {score}", True, BLACK)  # Использование шрифта EpilepsySans и черного цвета
         screen.blit(score_text, (10, 10))
 
-        # Отрисовка кнопки звука
+        # Рисуем кнопку звука
         draw_sound_button(sound_on)
 
         pygame.display.flip()
